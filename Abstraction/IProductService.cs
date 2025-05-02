@@ -1,4 +1,5 @@
-﻿using Shared.DTOS;
+﻿using Shared;
+using Shared.DTOS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Abstraction
 {
     public interface IProductService
     {
-        Task<IEnumerable<ProductDTO>> GetAll();
+        Task<PaginationResulte<ProductDTO>> GetAll(ProductParams productParams);
         Task<ProductDTO> GetById(int id);
 
         Task<IEnumerable<TypeDTO>> GetAllTypes();
