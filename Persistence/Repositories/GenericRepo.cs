@@ -27,5 +27,20 @@ namespace Persistence.Repositories
 
         public void Update(TEntity entity)
           => context.Set<TEntity>().Update(entity);
+
+        public async Task<IEnumerable<TEntity>> GetAll(ISpecifications<TEntity, TKey> specifications)
+        {
+          return await SpecificationEvaluated.CreateQuery(context.Set<TEntity>(), specifications).ToListAsync();
+        }
+
+        public async Task<TEntity> GetById(ISpecifications<TEntity, TKey> specifications)
+        {
+            return await SpecificationEvaluated.CreateQuery(context.Set<TEntity>(), specifications).FirstOrDefaultAsync();
+        }
+
+        public async Task<int> CountAsync(ISpecifications<TEntity, TKey> spec)
+            => await SpecificationEvaluated.CreateQuery(context.Set<TEntity>(), spec).CountAsync();
+
     }
 }
+

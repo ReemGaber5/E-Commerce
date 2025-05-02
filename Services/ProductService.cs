@@ -2,6 +2,8 @@
 using AutoMapper;
 using Domain.Interfaces;
 using Domain.Models.Products;
+using Services.Secifications;
+using Shared;
 using Shared.DTOS;
 using System;
 using System.Collections.Generic;
@@ -13,12 +15,20 @@ namespace Services
 {
     public class ProductService (IUOW uow,IMapper mapper) : IProductService
     {
-        public async Task<IEnumerable<ProductDTO>> GetAll()
+        public async Task<PaginationResulte<ProductDTO>> GetAll(ProductParams productParams)
         {
-            var Repo = uow.GetRepo<Product, int>();
-            var products = await Repo.GetAll();
+             var Repo = uow.GetRepo<Product, int>();
+            var Spec=new ProductSpecification(productParams);    
+
+            var products = await Repo.GetAll(Spec);
+
             var MappedProducts = mapper.Map<IEnumerable<Product>, IEnumerable<ProductDTO>>(products);
-            return MappedProducts;
+
+            var CountedProducts=products.Count();
+            var countspec = new ProductCountSpecification(productParams);
+            var TotalCount = await Repo.CountAsync(countspec);
+
+            return new PaginationResulte<ProductDTO>(productParams.PageIndex, CountedProducts,TotalCount, MappedProducts);
         }
 
         public async Task<IEnumerable<BrandDTO>> GetAllBrands()
@@ -39,7 +49,8 @@ namespace Services
 
         public async Task<ProductDTO> GetById(int id)
         {
-            var product = await uow.GetRepo<Product, int>().GetById(id);
+            var spec=new ProductSpecification(id);
+            var product = await uow.GetRepo<Product, int>().GetById(spec);
             return mapper.Map<Product,ProductDTO>(product);
 
         }
