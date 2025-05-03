@@ -1,5 +1,6 @@
 ﻿using Abstraction;
 using AutoMapper;
+using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.Models.Products;
 using Services.Secifications;
@@ -51,6 +52,10 @@ namespace Services
         {
             var spec=new ProductSpecification(id);
             var product = await uow.GetRepo<Product, int>().GetById(spec);
+
+            if (product == null)
+                throw new ProductNotFoundException(id);
+
             return mapper.Map<Product,ProductDTO>(product);
 
         }

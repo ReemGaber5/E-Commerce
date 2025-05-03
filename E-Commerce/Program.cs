@@ -1,11 +1,15 @@
 
 using Abstraction;
 using Domain.Interfaces;
+using E_Commerce.CustomMiddleWare;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Data;
 using Persistence.Repositories;
 using Services;
 using Services.MappingProfiles;
+using Shared.ErrorModels;
+using StackExchange.Redis;
 using System.Reflection.Metadata;
 using System.Threading.Tasks;
 
@@ -36,12 +40,40 @@ namespace E_Commerce
 
             });
 
-            
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = (context) =>
+                {
+                    var Errors = context.ModelState.Where(m => m.Value.Errors.Any()).
+                    Select(m => new ValidationError()
+                    {
+                        Field=m.Key,
+                        Errors=m.Value.Errors.Select(E=> E.ErrorMessage)
+
+                    });
+                    var Response = new ValidationErrorToReturn()
+                    {
+                        Errors = Errors
+                    };
+                    return new BadRequestObjectResult(Response);
+                };
+            });
+
+            builder.Services.AddScoped<IBasketRepository,BasketRepository>();   
+
+            builder.Services.AddSingleton<IConnectionMultiplexer>((_) =>
+            {
+                return ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnectionString"));
+
+            });
             var app = builder.Build();
 
            using var scope= app.Services.CreateScope();
             var dbinitializer= scope.ServiceProvider.GetRequiredService<IDbInitializer>();
             await dbinitializer.InitializeAsync();
+
+
+            app.UseMiddleware<CustomExceptionMiddleWare>();
 
 
             // Configure the HTTP request pipeline.
