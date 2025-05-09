@@ -1,7 +1,9 @@
 
 using Abstraction;
 using Domain.Interfaces;
+using Domain.Models.IdentityModule;
 using E_Commerce.CustomMiddleWare;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Data;
@@ -40,6 +42,16 @@ namespace E_Commerce
 
             });
 
+            //security
+            builder.Services.AddDbContext<StoreIdentityDbContext>(options =>
+            {
+                var connectionstring = builder.Configuration.GetConnectionString("IdentityConnection");
+                options.UseSqlServer(connectionstring);
+
+            });
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<StoreIdentityDbContext>();
+
             builder.Services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.InvalidModelStateResponseFactory = (context) =>
@@ -71,6 +83,7 @@ namespace E_Commerce
            using var scope= app.Services.CreateScope();
             var dbinitializer= scope.ServiceProvider.GetRequiredService<IDbInitializer>();
             await dbinitializer.InitializeAsync();
+            await dbinitializer.IdentityInitializeAsync();
 
 
             app.UseMiddleware<CustomExceptionMiddleWare>();

@@ -8,6 +8,8 @@ namespace Domain.Interfaces
 {
     public interface IDbInitializer
     {
-        Task InitializeAsync(); 
+        Task InitializeAsync();
+        Task IdentityInitializeAsync();
+
     }
 }

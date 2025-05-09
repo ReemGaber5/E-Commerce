@@ -1,5 +1,7 @@
 ﻿using Domain.Interfaces;
+using Domain.Models.IdentityModule;
 using Domain.Models.Products;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -11,56 +13,100 @@ using System.Threading.Tasks;
 
 namespace Persistence.Data
 {
-    public class DbInitializer : IDbInitializer
+    public class DbInitializer(StoreDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager,StoreIdentityDbContext identityContext) : IDbInitializer
     {
-        private readonly StoreDbContext _dbContext;
-        public DbInitializer(StoreDbContext dbContext)
+        public async Task IdentityInitializeAsync()
         {
-            _dbContext = dbContext;
+            try
+            {
+                //if there is no roles
+                if (!roleManager.Roles.Any())
+                {
+                    await roleManager.CreateAsync(new IdentityRole("Admin"));
+                    await roleManager.CreateAsync(new IdentityRole("SuperAdmin"));
+                }
+
+                if (!userManager.Users.Any())
+                {
+                    var User1 = new ApplicationUser()
+                    {
+                        Email = "Reem@gmail.com",
+                        DisplayName = "Reem",
+                        PhoneNumber = "01155887741",
+                        UserName = "Reem",
+                    };
+                    var User2 = new ApplicationUser()
+                    {
+                        Email = "Ali@gmail.com",
+                        DisplayName = "Ali",
+                        PhoneNumber = "01258897481",
+                        UserName = "Ali",
+
+                    };
+                    await userManager.CreateAsync(User1, "P@ssw0rd");
+                    await userManager.CreateAsync(User2, "P@ssw0rd");
+
+
+                    await userManager.AddToRoleAsync(User1, "Admin");
+                    await userManager.AddToRoleAsync(User1, "SuperAdmin");
+
+                    await identityContext.SaveChangesAsync();
+
+                }
+
+                await identityContext.SaveChangesAsync();
+
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
         }
+
         public async Task InitializeAsync()
         {
-            if((await _dbContext.Database.GetPendingMigrationsAsync()).Any())
+            if((await context.Database.GetPendingMigrationsAsync()).Any())
             {
-                await _dbContext.Database.MigrateAsync();
+                await context.Database.MigrateAsync();
             }
             try
             {
-                if (!_dbContext.Set<ProductBrand>().Any())
+                if (!context.Set<ProductBrand>().Any())
                 {
                     var data = await File.ReadAllTextAsync(@"..\Persistence\Data\Seeds\brands.json");
                     var objects = JsonSerializer.Deserialize<List<ProductBrand>>(data);
 
                     if (objects != null && objects.Any())
                     {
-                        _dbContext.Set<ProductBrand>().AddRange(objects);
-                        await _dbContext.SaveChangesAsync();
+                        context.Set<ProductBrand>().AddRange(objects);
+                        await context.SaveChangesAsync();
 
                     }
 
                 }
-                if (!_dbContext.Set<ProductType>().Any())
+                if (!context.Set<ProductType>().Any())
                 {
                     var data = await File.ReadAllTextAsync(@"..\Persistence\Data\Seeds\types.json");
                     var objects = JsonSerializer.Deserialize<List<ProductType>>(data);
 
                     if (objects != null && objects.Any())
                     {
-                        _dbContext.Set<ProductType>().AddRange(objects);
-                        await _dbContext.SaveChangesAsync();
+                        context.Set<ProductType>().AddRange(objects);
+                                await context.SaveChangesAsync();
 
                     }
 
                 }
-                if (!_dbContext.Set<Product>().Any())
+                if (!context.Set<Product>().Any())
                 {
                     var data = await File.ReadAllTextAsync(@"..\Persistence\Data\Seeds\products.json");
                     var objects = JsonSerializer.Deserialize<List<Product>>(data);
 
                     if (objects != null && objects.Any())
                     {
-                        _dbContext.Set<Product>().AddRange(objects);
-                        await _dbContext.SaveChangesAsync();
+                        context.Set<Product>().AddRange(objects);
+                        await context.SaveChangesAsync();
 
                     }
 
