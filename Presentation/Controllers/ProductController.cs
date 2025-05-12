@@ -1,4 +1,5 @@
 ﻿using Abstraction;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared;
 using Shared.DTOS;
@@ -15,6 +16,7 @@ namespace Presentation.Controllers
     public class ProductController (IServiceManger serviceManger):ControllerBase
     {
         //getallproducts
+        [Authorize]
         [HttpGet]
         public async Task <ActionResult<PaginationResulte<ProductDTO>>> GetAllProducts([FromQuery]ProductParams productParams)
         {

@@ -11,6 +11,12 @@ namespace Abstraction
     {
         Task<UserDTO>LoginAsync(LoginDTO loginDTO);
         Task<UserDTO> RegisterAsync(RegisterDTO registerDTO);
+        Task<bool>CheckEmailAsync(string email);
+        Task<AddressDTO>GetCurrentUserAddress(string email);    
+        Task<AddressDTO>updatecurrentuserAddress(string email,AddressDTO address);
+        Task<UserDTO>GetCurrentUser(string email);
+
+
 
 
 

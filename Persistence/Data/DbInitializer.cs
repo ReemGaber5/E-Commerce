@@ -1,5 +1,6 @@
 ﻿using Domain.Interfaces;
 using Domain.Models.IdentityModule;
+using Domain.Models.Order;
 using Domain.Models.Products;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -106,6 +107,19 @@ namespace Persistence.Data
                     if (objects != null && objects.Any())
                     {
                         context.Set<Product>().AddRange(objects);
+                        await context.SaveChangesAsync();
+
+                    }
+
+                }
+                if (!context.Set<DeliveryMethod>().Any())
+                {
+                    var data = await File.ReadAllTextAsync(@"..\Persistence\Data\Seeds\delivery.json");
+                    var objects = JsonSerializer.Deserialize<List<DeliveryMethod>>(data);
+
+                    if (objects != null && objects.Any())
+                    {
+                        context.Set<DeliveryMethod>().AddRange(objects);
                         await context.SaveChangesAsync();
 
                     }
